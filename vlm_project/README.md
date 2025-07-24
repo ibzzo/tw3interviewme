@@ -1,20 +1,27 @@
-# Partie 3 : Vision Language Model (VLM) - Qwen2.5-VL
+# Vision Language Model (VLM) - Qwen2.5-VL
 
-## 📋 Description
+[← Retour au projet principal](../README.md)
 
-Ce projet implémente la partie 3 du test technique : un script Python utilisant **Qwen/Qwen2.5-VL-3B-Instruct** en local pour traiter des images.
+Implémentation de la partie 3 du test technique : démonstration d'un VLM local avec Qwen2.5-VL-3B.
+
+## 🎯 Objectif
+
+Créer un script Python utilisant un Vision Language Model local pour :
+- Analyser des images locales
+- Extraire du texte (OCR)
+- Répondre à des questions sur le contenu visuel
 
 ## 🚀 Installation
 
 ### Prérequis
-- Mac M4 avec 24GB RAM
-- Homebrew installé
-- Python 3.12 (vLLM ne supporte pas Python 3.13)
+- Mac Apple Silicon (testé sur M4)
+- Python 3.12 (⚠️ vLLM ne supporte pas Python 3.13)
+- 8GB+ de RAM disponible
 
-### Installation manuelle
+### Installation rapide
 
 ```bash
-# 1. Installer Python 3.12
+# 1. Installer Python 3.12 si nécessaire
 brew install python@3.12
 
 # 2. Créer l'environnement virtuel
@@ -27,128 +34,122 @@ pip install vllm requests pillow
 
 ## 💻 Utilisation
 
-### 1. Démarrer le serveur vLLM
+### Étape 1 : Démarrer le serveur vLLM
 
 ```bash
-# Utiliser le script optimisé
 ./start_vllm.sh
-
-# OU manuellement
-source venv_vlm/bin/activate
-export VLLM_CPU_KVCACHE_SPACE=8
-vllm serve "Qwen/Qwen2.5-VL-3B-Instruct" --max-model-len 8192
 ```
 
-### 2. Dans un nouveau terminal, exécuter le script
+Le serveur démarre sur http://localhost:8000. Attendez le message "Uvicorn running" avant de continuer.
+
+### Étape 2 : Exécuter le script VLM
+
+Dans un nouveau terminal :
 
 ```bash
 source venv_vlm/bin/activate
 
-# Avec une image locale
-python vlm_demo.py photo.jpg
+# Analyse basique d'image
+python vlm_demo.py image.jpg
 
-# Avec un prompt personnalisé
-python vlm_demo.py photo.jpg "Extract all text from this image"
+# Avec prompt personnalisé
+python vlm_demo.py image.jpg "Extract all text from this document"
 
-# Avec une URL
+# Avec URL d'image
 python vlm_demo.py https://example.com/image.jpg
 ```
 
-## 📁 Structure
+## 📁 Fichiers du projet
+
+- **`vlm_demo.py`** : Script principal avec animation de chargement
+- **`start_vllm.sh`** : Script optimisé pour démarrer vLLM sur CPU
+- **`README.md`** : Documentation et analyse théorique
+
+## ⚡ Optimisations appliquées
+
+1. **Configuration CPU** : `VLLM_CPU_KVCACHE_SPACE=8` pour Mac
+2. **Modèle réduit** : `max-model-len=8192` pour économiser la RAM
+3. **Timeout ajusté** : 300s pour traitement CPU
+4. **Animation visuelle** : Feedback durant le traitement
+
+## 🏗️ Question théorique : Architecture VLM-RAG
+
+### Comment intégrer des VLMs dans un système RAG ?
+
+Pour créer un pipeline RAG multimodal efficace, l'architecture doit résoudre trois défis : extraction intelligente, préservation des relations contextuelles, et recherche unifiée.
+
+### Architecture proposée
 
 ```
-vlm_project/
-├── README.md              # Ce fichier
-├── vlm_demo.py           # Script principal VLM
-├── start_vllm.sh         # Script de démarrage optimisé
-└── venv_vlm/             # Environnement virtuel (ignoré par git)
+Documents → Extracteur → VLM Enrichissement → Vectorisation → Index → Recherche
 ```
 
-## ⚠️ Notes importantes
+### Composants clés
 
-- **Python 3.13 n'est PAS supporté** par vLLM
-- Le premier chargement du modèle peut prendre plusieurs minutes
-- Le modèle utilise environ 6-8GB de RAM
-- Optimisé pour Mac M4 avec accélération Metal
+**1. Extraction intelligente**
+- Identifie texte, images et leurs relations spatiales
+- Préserve les liens (ex: graphique + légende)
+- Utilise LayoutLM pour comprendre la structure
 
-## 🎯 Fonctionnalités
+**2. Enrichissement VLM**
+- Transforme images en descriptions textuelles
+- Analyse le contexte pour interpréter correctement
+- Exemple : graphique → "croissance 23% Q3 2024"
 
-- ✅ Description détaillée d'images
-- ✅ Extraction de texte (OCR)
-- ✅ Support images locales et URLs
-- ✅ Prompts personnalisables
-- ✅ Utilisation de Qwen2.5-VL-3B-Instruct
+**3. Vectorisation hybride**
+- Vecteurs textuels : embeddings standards
+- Vecteurs visuels : représentations CLIP
+- Vecteurs unifiés : fusion cross-modale
 
-## 🏗️ Question théorique : Architecture VLM pour système RAG
+**4. Indexation stratégique**
+```python
+{
+  "content": "texte ou description",
+  "type": "text|image|unified",
+  "embedding": [0.1, 0.2, ...],
+  "metadata": {
+    "position": 42,
+    "relations": ["fig_1", "para_3"],
+    "vlm_confidence": 0.95
+  }
+}
+```
 
-### Comment architecturer un système de vectorisation de documents intégrant des VLMs ?
+**5. Recherche intelligente**
+- Expansion de requête automatique
+- Fusion pondérée multi-modale
+- Reranking pour pertinence finale
 
-Pour créer un pipeline RAG multimodal efficace, l'architecture doit résoudre trois défis majeurs : l'extraction intelligente du contenu, la préservation des relations contextuelles, et la recherche unifiée cross-modale.
+### Optimisations pratiques
 
-### 1. Architecture proposée
+1. **Chunking contextuel** : Fenêtre de 200 mots autour des images
+2. **Cache perceptuel** : Hash des images pour éviter retraitement
+3. **Validation VLM** : Détection d'hallucinations
+4. **Pipeline asynchrone** : Traitement parallèle
 
-Le système s'organise autour de 5 composants principaux interconnectés :
+### Avantages
 
-**Extracteur Multimodal** → **Préprocesseur VLM** → **Vectorisation Hybride** → **Stockage Indexé** → **Moteur de Recherche**
+✅ Compréhension holistique des documents  
+✅ Recherche flexible (texte → image)  
+✅ Contexte préservé automatiquement  
+✅ Architecture scalable et modulaire  
 
-### 2. Composants clés et leurs rôles
+### En production
 
-#### 2.1 Extraction intelligente
-L'extracteur doit identifier non seulement le texte et les images, mais surtout leurs relations spatiales et sémantiques. Pour un graphique accompagné d'une légende, le système doit maintenir ce lien tout au long du pipeline. Les outils comme LayoutLM comprennent la structure visuelle des documents pour préserver ces associations.
+- VLMs locaux (Qwen2.5-VL) pour volume
+- APIs cloud (GPT-4V) pour cas complexes
+- Cache aggressive (24h+)
+- Monitoring par modalité
 
-#### 2.2 Enrichissement par VLM
-Les VLMs transforment les images en descriptions textuelles riches. Un graphique financier devient "courbe ascendante montrant une croissance de 23% sur Q3 2024". Le VLM analyse aussi le contexte : une image près d'un paragraphe sur les ventes sera interprétée différemment qu'une près d'un texte technique.
+Cette approche transforme le RAG en système véritablement multimodal, offrant une recherche naturelle où texte et images sont traités équitablement.
 
-#### 2.3 Vectorisation multi-modale
-Trois types de vecteurs sont générés :
-- **Vecteurs textuels** : embeddings classiques pour le contenu textuel
-- **Vecteurs visuels** : représentations CLIP des images
-- **Vecteurs unifiés** : fusion cross-modale pour recherche conceptuelle
+## 📝 Notes techniques
 
-Cette approche permet de chercher par texte ("graphique des ventes"), par similarité visuelle, ou par concept abstrait ("tendance positive").
+- Premier chargement : ~2-3 minutes
+- Consommation RAM : ~6-8GB
+- Optimisé pour Apple Silicon (Metal)
+- Support images locales et URLs
 
-#### 2.4 Indexation stratégique
-Le stockage utilise des index séparés par modalité avec métadonnées enrichies :
-- Position dans le document
-- Relations avec autres éléments
-- Descriptions VLM
-- Scores de confiance
+---
 
-Cette structure permet des requêtes complexes comme "trouver tous les diagrammes techniques avec leurs explications associées".
-
-#### 2.5 Recherche hybride intelligente
-Le moteur combine plusieurs stratégies :
-- Expansion de requête pour couvrir les synonymes visuels
-- Fusion pondérée des résultats multi-modaux
-- Reranking cross-encoder pour pertinence finale
-- Diversification MMR pour éviter la redondance
-
-### 3. Optimisations critiques
-
-**Chunking contextuel** : Les segments preservent les liens texte-image dans une fenêtre de proximité (ex: 200 mots avant/après).
-
-**Cache perceptuel** : Évite de retraiter des images similaires en utilisant des hash perceptuels avec seuil de similarité.
-
-**Détection d'hallucinations** : Valide que les descriptions VLM correspondent réellement au contenu visuel pour maintenir la qualité.
-
-**Traitement asynchrone** : Les opérations VLM coûteuses sont distribuées pour maintenir la latence acceptable.
-
-### 4. Avantages de cette approche
-
-1. **Compréhension holistique** : Le système comprend les documents comme un humain, en liant naturellement texte et visuels.
-
-2. **Flexibilité de recherche** : Les utilisateurs peuvent chercher par description textuelle d'images qu'ils n'ont jamais vues.
-
-3. **Précision contextuelle** : Les résultats incluent automatiquement les éléments visuels pertinents avec leur contexte.
-
-4. **Scalabilité** : L'architecture modulaire permet d'optimiser chaque composant indépendamment.
-
-### 5. Considérations pratiques
-
-Pour la production, privilégier :
-- VLMs locaux pour le volume (Qwen2.5-VL sur GPU)
-- APIs cloud (GPT-4V) uniquement pour cas complexes
-- Monitoring de la latence par modalité
-- Stratégie de cache aggressive (24h minimum)
-
-Cette architecture transforme le RAG traditionnel en système véritablement multimodal, où texte et images sont traités comme citoyens de première classe, offrant une expérience de recherche naturelle et complète.
+Pour le chatbot avec recherche web, voir [chatbot-ia-generative](../chatbot-ia-generative/README.md)
