@@ -1,0 +1,39 @@
+# Django
+django==5.0.1
+djangorestframework==3.14.0
+django-cors-headers==4.3.1
+python-dotenv==1.0.0
+
+# OpenRouter & HTTP
+httpx==0.25.2
+requests==2.31.0
+
+# Web search - SerpAPI
+google-search-results==2.4.2
+
+# Web scraping (backup)
+duckduckgo-search==3.9.9
+beautifulsoup4==4.12.2
+lxml==4.9.3
+
+# WebSocket support
+channels==4.0.0
+daphne==4.0.0
+
+# Redis pour cache et WebSocket
+redis==5.0.1
+django-redis==5.4.0
+
+# Celery pour les tâches asynchrones
+celery==5.3.4
+
+# Utils
+python-dateutil==2.8.2
+
+# Structured output
+pydantic==2.5.3
+
+# Hugging Face for LLM
+transformers==4.40.0
+torch==2.2.0
+accelerate==0.27.0
