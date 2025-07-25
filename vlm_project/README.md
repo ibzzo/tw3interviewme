@@ -35,7 +35,18 @@ cd vlm_project
 
 Le serveur démarre sur http://localhost:8000. Attendez le message "Uvicorn running" avant de continuer.
 
-### Étape 2 : Exécuter le script VLM
+### Étape 2 : Préparer une image test
+
+```bash
+# Copier une image de votre choix dans le dossier vlm_project
+# Par exemple :
+cp ~/Desktop/mon_image.jpg ./test_image.jpg
+
+# Ou télécharger une image d'exemple :
+curl -o test_image.jpg https://images.unsplash.com/photo-1574158622682-e40e69881006
+```
+
+### Étape 3 : Exécuter le script VLM
 
 Dans un nouveau terminal :
 
@@ -44,11 +55,11 @@ Dans un nouveau terminal :
 source venv_vllm/bin/activate
 cd vlm_project
 
-# Analyse basique d'image
-python vlm_demo.py image.jpg
+# Analyse basique d'image (remplacer test_image.jpg par votre nom de fichier)
+python vlm_demo.py test_image.jpg
 
 # Avec prompt personnalisé
-python vlm_demo.py image.jpg "Extract all text from this document"
+python vlm_demo.py test_image.jpg "Extract all text from this document"
 
 # Avec URL d'image
 python vlm_demo.py https://example.com/image.jpg

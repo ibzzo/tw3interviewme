@@ -100,7 +100,7 @@ cd ..
 Créer un fichier `.env` dans `chatbot-ia-generative/` :
 ```bash
 cd chatbot-ia-generative
-cp .env.example .env
+touch .env
 # Éditer .env et ajouter vos clés API
 ```
 
@@ -161,7 +161,12 @@ cd vlm_project
 # Terminal 2 - Script demo
 source venv_vllm/bin/activate
 cd vlm_project
-python vlm_demo.py
+
+# Copier d'abord une image test
+cp ~/Desktop/votre_image.jpg ./test_image.jpg
+
+# Lancer l'analyse
+python vlm_demo.py test_image.jpg
 ```
 
 ## 📚 Documentation
