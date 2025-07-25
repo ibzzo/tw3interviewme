@@ -6,11 +6,11 @@ Ce projet contient les implémentations pour le test technique d'ingénieur IA g
 
 ```
 tw3interviewme/
+├── venv_vllm/               # 🐍 Python 3.12 pour vLLM (partagé)
 ├── chatbot-ia-generative/    # Partie 1 & 2 : Chatbot avec recherche web
-│   ├── venv/                # 🐍 Python 3.12 unique (Django + vLLM)
+│   ├── venv/                # 🐍 Python 3.12 pour Django
 │   └── frontend/           # ⚛️ React TypeScript
-├── vlm_project/             # Partie 3 : Démo VLM (environnement séparé)
-│   └── venv/               # 🐍 Python 3.12 pour VLM demo
+├── vlm_project/             # Partie 3 : Démo VLM
 └── README.md               # Ce fichier
 ```
 
@@ -54,8 +54,9 @@ Les réponses complètes aux questions du test sont disponibles :
 - Node.js 16+
 - 8GB+ de RAM
 
-### ⚠️ Note importante
-**Utilisez Python 3.12** (Python 3.13 cause des problèmes de compatibilité)
+### ⚠️ Notes importantes
+- **Utilisez Python 3.12** (Python 3.13 cause des problèmes de compatibilité)
+- **Version vLLM** : Utilisez vLLM 0.9.2 (version testée et fonctionnelle sur macOS)
 
 ### Installation Complète
 
@@ -65,20 +66,25 @@ git clone https://github.com/ibzzo/tw3interviewme.git
 cd tw3interviewme
 ```
 
-#### 2. Chatbot IA (Backend + Frontend)
+#### 2. Installer vLLM (partagé pour chatbot et VLM)
+```bash
+# Créer l'environnement vLLM à la racine
+python3.12 -m venv venv_vllm
+source venv_vllm/bin/activate
+pip install -r requirements_vllm.txt
+deactivate
+```
+
+#### 3. Chatbot IA (Backend + Frontend)
 ```bash
 cd chatbot-ia-generative
 
-# Créer UN SEUL environnement virtuel Python 3.12
+# Créer l'environnement Django
 python3.12 -m venv venv
-source venv/bin/activate  # Linux/Mac
-# ou: venv\Scripts\activate  # Windows
+source venv/bin/activate
 
 # Installer Django et dépendances
 pip install -r requirements.txt
-
-# Installer vLLM dans le même environnement (optionnel pour mode local)
-pip install vllm
 
 # Configurer la base de données
 python manage.py migrate
@@ -87,18 +93,6 @@ python manage.py migrate
 cd frontend
 npm install
 cd ..
-```
-
-#### 3. VLM Demo (environnement séparé) - Optionnel
-```bash
-cd ../vlm_project
-
-# Créer son propre environnement
-python3.12 -m venv venv
-source venv/bin/activate
-
-# Installer les dépendances VLM
-pip install -r requirements.txt
 ```
 
 ## 📝 Configuration
@@ -136,16 +130,18 @@ npm start
 cd chatbot-ia-generative
 
 # Terminal 1 - vLLM
-source venv/bin/activate
+cd .. # Retour à la racine tw3interviewme
+source venv_vllm/bin/activate
 export VLLM_CPU_KVCACHE_SPACE=8
-vllm serve "microsoft/Phi-3-mini-4k-instruct" --host 0.0.0.0 --port 8080 --device cpu
+vllm serve "microsoft/Phi-3-mini-4k-instruct" --host 0.0.0.0 --port 8080
 
 # Terminal 2 - Backend Django (nouveau terminal)
+cd chatbot-ia-generative
 source venv/bin/activate
 python manage.py runserver
 
 # Terminal 3 - Frontend React
-cd frontend
+cd chatbot-ia-generative/frontend
 npm start
 ```
 
@@ -157,9 +153,15 @@ npm start
 
 ### VLM Demo
 ```bash
+# Terminal 1 - vLLM pour VLM
+source venv_vllm/bin/activate
 cd vlm_project
-./start_vllm.sh        # Terminal 1
-python vlm_demo.py     # Terminal 2
+./start_vllm.sh
+
+# Terminal 2 - Script demo
+source venv_vllm/bin/activate
+cd vlm_project
+python vlm_demo.py
 ```
 
 ## 📚 Documentation
@@ -179,7 +181,7 @@ python vlm_demo.py     # Terminal 2
 - **Interface** : Script Python interactif
 
 ## 👤 Auteur
-Ibrahim Adiao
+Ibrahima DIAO
 
 ## 📄 License
 Ce projet est développé dans le cadre d'un test technique.

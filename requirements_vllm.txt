@@ -1,0 +1,14 @@
+# Requirements pour vLLM partagé (chatbot et VLM demo)
+# Version testée et fonctionnelle sur macOS
+
+# vLLM
+vllm==0.9.2
+
+# Client OpenAI pour communiquer avec vLLM
+openai==1.35.0
+
+# Traitement d'images pour VLM demo
+pillow==10.3.0
+
+# Utils
+python-dotenv==1.0.1

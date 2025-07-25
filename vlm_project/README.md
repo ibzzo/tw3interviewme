@@ -18,25 +18,18 @@ Créer un script Python utilisant un Vision Language Model local pour :
 - Python 3.12 (⚠️ vLLM ne supporte pas Python 3.13)
 - 8GB+ de RAM disponible
 
-### Installation rapide
+### Installation
 
-```bash
-# 1. Installer Python 3.12 si nécessaire
-brew install python@3.12
-
-# 2. Créer l'environnement virtuel
-python3.12 -m venv venv_vlm
-source venv_vlm/bin/activate
-
-# 3. Installer les dépendances
-pip install vllm requests pillow
-```
+L'environnement vLLM est partagé avec le chatbot. Voir l'installation complète dans le [README principal](../README.md).
 
 ## 💻 Utilisation
 
 ### Étape 1 : Démarrer le serveur vLLM
 
 ```bash
+# Depuis la racine du projet
+source venv_vllm/bin/activate
+cd vlm_project
 ./start_vllm.sh
 ```
 
@@ -47,7 +40,9 @@ Le serveur démarre sur http://localhost:8000. Attendez le message "Uvicorn runn
 Dans un nouveau terminal :
 
 ```bash
-source venv_vlm/bin/activate
+# Depuis la racine du projet
+source venv_vllm/bin/activate
+cd vlm_project
 
 # Analyse basique d'image
 python vlm_demo.py image.jpg
