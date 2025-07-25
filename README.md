@@ -7,7 +7,7 @@ Ce projet contient les implémentations pour le test technique d'ingénieur IA g
 ```
 tw3interviewme/
 ├── chatbot-ia-generative/    # Partie 1 & 2 : Chatbot avec recherche web
-│   ├── venv/                # 🐍 Python 3.12 unique
+│   ├── venv/                # 🐍 Python 3.12 unique (Django + vLLM)
 │   └── frontend/           # ⚛️ React TypeScript
 ├── vlm_project/             # Partie 3 : Démo VLM (environnement séparé)
 │   └── venv/               # 🐍 Python 3.12 pour VLM demo
@@ -57,7 +57,7 @@ Les réponses complètes aux questions du test sont disponibles :
 ### ⚠️ Note importante
 **Utilisez Python 3.12** (Python 3.13 cause des problèmes de compatibilité)
 
-### Installation Complète (2 environnements seulement)
+### Installation Complète
 
 #### 1. Cloner le projet
 ```bash
@@ -77,7 +77,7 @@ source venv/bin/activate  # Linux/Mac
 # Installer Django et dépendances
 pip install -r requirements.txt
 
-# Installer vLLM (optionnel pour mode local)
+# Installer vLLM dans le même environnement (optionnel pour mode local)
 pip install vllm
 
 # Configurer la base de données
@@ -153,6 +153,7 @@ npm start
 - 🌐 **Frontend** : http://localhost:3000
 - 🔧 **Backend API** : http://localhost:8000
 - 🤖 **vLLM** : http://localhost:8080 (si activé)
+
 
 ### VLM Demo
 ```bash
