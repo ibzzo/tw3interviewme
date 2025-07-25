@@ -1,44 +1,22 @@
-# Django
-django==5.0.1
-djangorestframework==3.14.0
+# Core Django
+django==4.2.11
+djangorestframework==3.15.1
 django-cors-headers==4.3.1
-python-dotenv==1.0.0
 
-# OpenRouter & HTTP
-httpx==0.25.2
+# Database
+dj-database-url==2.1.0
+
+# Environment
+python-dotenv==1.0.1
+
+# HTTP & API
 requests==2.31.0
+httpx==0.27.0
 
-# Web search - SerpAPI
+# Search API
 google-search-results==2.4.2
 
-# Web scraping (backup)
-duckduckgo-search==3.9.9
-beautifulsoup4==4.12.2
-lxml==4.9.3
-
-# WebSocket support
-channels==4.0.0
-daphne==4.0.0
-
-# Redis pour cache et WebSocket
-redis==5.0.1
-django-redis==5.4.0
-
-# Celery pour les tâches asynchrones
-celery==5.3.4
-
 # Utils
-python-dateutil==2.8.2
+pytz==2024.1
 
-# Structured output
-pydantic==2.5.3
-
-# Hugging Face for LLM
-transformers==4.40.0
-torch>=2.6.0
-accelerate==0.27.0
-
-# vLLM (Local LLM haute performance)
-# Note: vLLM nécessite un GPU NVIDIA avec CUDA
-# vllm==0.2.7  # Décommenter si GPU disponible
-# flash-attn==2.5.0  # Optionnel pour meilleures performances
+# Note: Pour vLLM, installer séparément avec : pip install vllm

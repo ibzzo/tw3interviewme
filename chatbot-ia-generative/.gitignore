@@ -20,11 +20,15 @@ wheels/
 .installed.cfg
 *.egg
 MANIFEST
+
+# Environments
 .env
 venv/
-venv_vllm/
+venv_*/
 ENV/
 env/
+.venv/
+.venv_*/
 
 # Node
 node_modules/

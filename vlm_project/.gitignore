@@ -1,24 +1,24 @@
 # Python
-venv_vlm/
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
+*.py[cod]
+*.class
 
-# Test files
-test_image.jpg
+# Environments
+.env
+venv/
+venv_*/
+ENV/
+env/
+.venv/
+
+# Logs
+*.log
+
+# Test images
+test_images/
 *.jpg
 *.png
 *.jpeg
 
-# IDE
-.vscode/
-.idea/
-
-# OS
+# macOS
 .DS_Store
-Thumbs.db
-
-# Logs
-*.log

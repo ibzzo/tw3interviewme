@@ -1,0 +1,11 @@
+# vLLM pour servir le modèle VLM
+vllm==0.5.3.post1
+
+# Client OpenAI pour communiquer avec vLLM
+openai==1.35.0
+
+# Traitement d'images
+pillow==10.3.0
+
+# Utils
+python-dotenv==1.0.1
