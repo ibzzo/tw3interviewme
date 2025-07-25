@@ -24,97 +24,28 @@ Chatbot intelligent développé pour le test technique d'Ingénieur IA Générat
 
 ## 🛠️ Installation
 
-### Prérequis
-- Python 3.13 (Django) + Python 3.12 (vLLM)
-- Node.js 14+
-- macOS/Linux recommandé
+📌 **Voir les instructions d'installation complètes dans le [README principal](../README.md#installation-complète-3-environnements)**
 
-### 1. Backend Django (Python 3.13)
+### Configuration rapide
+
+1. **Créer le fichier .env**
 ```bash
-cd chatbot-ia-generative
-python3.13 -m venv venv
-source venv/bin/activate
-
-# Installer : Django, DRF, requests, python-dotenv, django-cors-headers
-pip install -r requirements.txt
-
-# Configuration
-cp .env.example .env  # Ajouter votre clé OpenRouter
-
-# Base de données
-python manage.py migrate
+cp .env.example .env
+# Éditer .env avec vos clés API
 ```
 
-### 2. vLLM (optionnel pour mode local)
-
-#### Installation (Python 3.12 requis)
-```bash
-python3.12 -m venv venv_vllm
-source venv_vllm/bin/activate
-
-# Installer uniquement vLLM (inclut torch, transformers automatiquement)
-pip install vllm
-```
-
-#### Configuration et lancement
-```bash
-# Activer l'environnement
-source venv_vllm/bin/activate
-
-# Configurer pour CPU
-export VLLM_CPU_KVCACHE_SPACE=8
-
-# Lancer le serveur vLLM
-vllm serve "microsoft/Phi-3-mini-4k-instruct" \
-    --host 0.0.0.0 \
-    --port 8080 \
-    --device cpu
-```
-
-#### Modèles recommandés
-- **microsoft/Phi-3-mini-4k-instruct** (3.8B) - Recommandé, bon équilibre
+2. **Modèles vLLM recommandés**
+- **microsoft/Phi-3-mini-4k-instruct** (3.8B) - Recommandé
 - **microsoft/phi-2** (2.7B) - Plus rapide sur CPU
 - **google/gemma-2b** (2B) - Ultra léger
 
-#### Résolution des problèmes
-- **Port déjà utilisé** : Changer avec `--port 8081`
-- **Mémoire insuffisante** : Réduire avec `--max-model-len 2048`
-- **Module non trouvé** : Vérifier `which python` pointe vers venv_vllm
+## 🚀 Lancement rapide
 
-### 3. Frontend React
-```bash
-cd frontend
-npm install
-```
+📌 **Voir les instructions de lancement détaillées dans le [README principal](../README.md#-lancement)**
 
-## 🚀 Lancement
-
-### Mode 1 : Cloud uniquement (2 terminaux)
-```bash
-# Terminal 1 - Backend Django
-source venv/bin/activate        # ⚠️ venv (pas venv_vllm)
-python manage.py runserver
-
-# Terminal 2 - Frontend React
-cd frontend && npm start
-```
-
-### Mode 2 : Avec vLLM local (3 terminaux)
-```bash
-# Terminal 1 - vLLM
-source venv_vllm/bin/activate   # ⚠️ venv_vllm (pas venv)
-export VLLM_CPU_KVCACHE_SPACE=8
-vllm serve "microsoft/Phi-3-mini-4k-instruct" --host 0.0.0.0 --port 8080
-
-# Terminal 2 - Backend Django
-source venv/bin/activate        # ⚠️ venv (pas venv_vllm)
-python manage.py runserver
-
-# Terminal 3 - Frontend React
-cd frontend && npm start
-```
-
-Accès : http://localhost:3000
+- **Frontend** : http://localhost:3000
+- **Backend** : http://localhost:8000
+- **vLLM** : http://localhost:8080 (si activé)
 
 ## 📝 Scénario de test
 

@@ -99,7 +99,7 @@ class ChatAPIView(APIView):
                 })
             
             # Récupérer le modèle sélectionné
-            selected_model = cache.get('selected_llm_model', 'vllm')
+            selected_model = cache.get('selected_llm_model', 'openrouter')
             logger.info(f"📌 Modèle sélectionné depuis le cache: {selected_model}")
             
             if selected_model == 'vllm':

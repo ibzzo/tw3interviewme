@@ -48,7 +48,7 @@ interface ModelSelectorProps {
 }
 
 const ModelSelector: React.FC<ModelSelectorProps> = ({ onModelChange }) => {
-  const [selectedModel, setSelectedModel] = useState<string>('vllm');
+  const [selectedModel, setSelectedModel] = useState<string>('openrouter');
   const [vllmStatus, setVllmStatus] = useState<boolean>(false);
   const [vllmModel, setVllmModel] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);

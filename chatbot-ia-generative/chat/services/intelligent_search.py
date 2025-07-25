@@ -169,7 +169,7 @@ IMPORTANT: Ta réponse doit être SEULEMENT le JSON, sans texte avant ou après.
         
         try:
             # Utiliser le modèle sélectionné dans le cache
-            selected_model = cache.get('selected_llm_model', 'vllm')
+            selected_model = cache.get('selected_llm_model', 'openrouter')
             logger.info(f"🔎 Génération requête recherche avec: {selected_model}")
             
             if selected_model == 'vllm' and self.vllm_service.is_available():
@@ -437,7 +437,7 @@ IMPORTANT: Ta réponse doit être SEULEMENT le JSON, sans texte avant ou après.
         
         try:
             # Utiliser le modèle sélectionné dans le cache
-            selected_model = cache.get('selected_llm_model', 'vllm')
+            selected_model = cache.get('selected_llm_model', 'openrouter')
             logger.info(f"🔍 Génération réponse recherche avec: {selected_model}")
             
             if selected_model == 'vllm' and self.vllm_service.is_available():

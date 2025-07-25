@@ -36,7 +36,7 @@ class SetModelView(APIView):
     
     def get(self, request):
         """Récupère le modèle actuel"""
-        model = cache.get('selected_llm_model', 'vllm')
+        model = cache.get('selected_llm_model', 'openrouter')
         
         return Response({
             'model': model
