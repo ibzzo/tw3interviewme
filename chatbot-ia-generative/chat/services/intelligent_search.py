@@ -10,10 +10,9 @@ from django.conf import settings
 
 from .serpapi_service import SerpAPIService
 from .multi_search import MultiSearchService
-try:
-    from .huggingface_lite import HuggingFaceLiteService
-except ImportError:
-    HuggingFaceLiteService = None
+from .vllm_service import VLLMService
+from .openrouter_optimized import OpenRouterOptimizedService
+from django.core.cache import cache
 
 logger = logging.getLogger(__name__)
 
@@ -22,47 +21,24 @@ class IntelligentSearchService:
     """Service de recherche intelligent qui utilise le LLM pour optimiser les requêtes"""
     
     def __init__(self):
-        # On n'utilise plus OpenRouter pour le LLM principal
         # Services de recherche
         self.serpapi_service = SerpAPIService()
         self.multi_search = MultiSearchService()
         
-        # Service LLM avec Hugging Face Lite
-        logger.info("\n🧠 CONFIGURATION DU SERVICE LLM")
-        logger.info("-" * 40)
+        # Services LLM
+        self.vllm_service = VLLMService()
+        self.openrouter_service = OpenRouterOptimizedService()
         
-        self.use_huggingface = False
-        if HuggingFaceLiteService:
-            logger.info("🔍 Tentative d'utilisation de Hugging Face...")
-            try:
-                self.llm_service = HuggingFaceLiteService()
-                if self.llm_service.is_available():
-                    self.use_huggingface = True
-                    logger.info("✅ SERVICE SÉLECTIONNÉ: Hugging Face (LLM Local)")
-                    logger.info("🎯 Vous gagnez +5 points bonus pour l'utilisation d'un LLM local!")
-                else:
-                    logger.info("⚠️ Hugging Face non disponible")
-                    logger.info("🔄 Basculement vers OpenRouter")
-            except Exception as e:
-                logger.error(f"❌ Erreur initialisation Hugging Face: {e}")
-                logger.info("🔄 Basculement vers OpenRouter")
-        else:
-            logger.info("❌ Module HuggingFaceLiteService non trouvé")
-        
-        # Configuration OpenRouter comme fallback
-        if not self.use_huggingface:
-            logger.info("🌐 SERVICE SÉLECTIONNÉ: OpenRouter (API Externe)")
-            logger.info("💡 Pour utiliser un LLM local (+5 points bonus):")
-            logger.info("   pip install transformers torch accelerate")
-            self.api_key = settings.OPENROUTER_API_KEY
-            self.base_url = settings.OPENROUTER_BASE_URL
-            self.model = settings.OPENROUTER_MODEL
-            self.headers = {
-                "Authorization": f"Bearer {self.api_key}",
-                "Content-Type": "application/json",
-                "HTTP-Referer": "http://localhost:3000",
-                "X-Title": "AI Chatbot Intelligent Search"
-            }
+        # Configuration OpenRouter pour les cas où on en a encore besoin
+        self.api_key = settings.OPENROUTER_API_KEY
+        self.base_url = settings.OPENROUTER_BASE_URL
+        self.model = settings.OPENROUTER_MODEL
+        self.headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": "http://localhost:3000",
+            "X-Title": "AI Chatbot Intelligent Search"
+        }
     
     def process_user_query(
         self,
@@ -75,8 +51,6 @@ class IntelligentSearchService:
         1. Génère une requête de recherche optimisée
         2. Effectue la recherche et génère la réponse
         """
-        logger.info(f"\n🧠 RECHERCHE INTELLIGENTE")
-        logger.info(f"📝 Question utilisateur: {user_query}")
         
         try:
             # Étape 1: Générer la requête de recherche optimale
@@ -97,8 +71,6 @@ class IntelligentSearchService:
             search_query = search_query_data['search_query']
             search_type = search_query_data.get('search_type', 'news')
             
-            logger.info(f"🔍 Requête optimisée: \"{search_query}\"")
-            logger.info(f"📊 Type de recherche: {search_type}")
             
             # Étape 2: Effectuer la recherche
             search_results = self._perform_smart_search(
@@ -196,37 +168,36 @@ IMPORTANT: Ta réponse doit être SEULEMENT le JSON, sans texte avant ou après.
         ]
         
         try:
-            if self.use_huggingface:
-                # Utiliser Hugging Face Lite
-                logger.info("\n" + "🤗"*20)
-                logger.info("🤗 UTILISATION DE HUGGING FACE (LLM LOCAL)")
-                logger.info("🤗"*20)
-                response_text = self.llm_service.generate_search_query(messages)
-                
-                # Parser le JSON de la réponse
-                try:
-                    response_text = response_text.strip()
-                    if '{' in response_text and '}' in response_text:
-                        start = response_text.find('{')
-                        end = response_text.rfind('}') + 1
-                        json_str = response_text[start:end]
-                        search_data = json.loads(json_str)
-                        logger.info(f"✅ Requête générée par HF: {search_data.get('search_query', '')}")
-                        return search_data
-                    else:
-                        raise json.JSONDecodeError("No JSON found", response_text, 0)
-                except json.JSONDecodeError:
-                    logger.warning("❌ Pas de JSON valide de HF, utilisation du fallback")
-                    return {
-                        'search_query': self._extract_query_from_text(user_query),
-                        'search_type': 'general'
-                    }
-            else:
-                # Fallback vers OpenRouter
-                logger.info("\n" + "🌐"*20)
-                logger.info("🌐 UTILISATION D'OPENROUTER (API EXTERNE)")
-                logger.info(f"🤖 Modèle: {self.model}")
-                logger.info("🌐"*20)
+            # Utiliser le modèle sélectionné dans le cache
+            selected_model = cache.get('selected_llm_model', 'vllm')
+            logger.info(f"🔎 Génération requête recherche avec: {selected_model}")
+            
+            if selected_model == 'vllm' and self.vllm_service.is_available():
+                # Utiliser vLLM
+                prompt = f"{system_prompt}\n\nUser: {messages[1]['content']}"
+                response = self.vllm_service.generate_response(prompt=prompt)
+                if response['success']:
+                    response_text = response['response']
+                    try:
+                        # Parser le JSON
+                        response_text = response_text.strip()
+                        if '{' in response_text and '}' in response_text:
+                            start = response_text.find('{')
+                            end = response_text.rfind('}') + 1
+                            json_str = response_text[start:end]
+                            search_data = json.loads(json_str)
+                            return search_data
+                    except json.JSONDecodeError:
+                        logger.warning("❌ JSON invalide de vLLM, fallback")
+                        return {
+                            'search_query': self._extract_query_from_text(user_query),
+                            'search_type': 'general'
+                        }
+                else:
+                    selected_model = 'openrouter'
+            
+            # Si OpenRouter ou si vLLM a échoué
+            if selected_model == 'openrouter':
                 response = httpx.post(
                     f"{self.base_url}/chat/completions",
                     headers=self.headers,
@@ -253,7 +224,6 @@ IMPORTANT: Ta réponse doit être SEULEMENT le JSON, sans texte avant ou après.
                             end = content.rfind('}') + 1
                             json_str = content[start:end]
                             search_data = json.loads(json_str)
-                            logger.info(f"✅ JSON parsé avec succès")
                             return search_data
                         else:
                             raise json.JSONDecodeError("No JSON found", content, 0)
@@ -265,10 +235,14 @@ IMPORTANT: Ta réponse doit être SEULEMENT le JSON, sans texte avant ou après.
                             'search_query': self._extract_query_from_text(user_query),
                             'search_type': 'general'
                         }
+                elif response.status_code == 429:
+                    logger.warning("⚠️ Limite OpenRouter atteinte (429) - Utilisation requête basique")
+                    return {
+                        'search_query': self._extract_query_from_text(user_query),
+                        'search_type': 'general'
+                    }
                 else:
                     logger.error(f"Erreur API: {response.status_code}")
-                    logger.error(f"Réponse: {response.text}")
-                    logger.error(f"Modèle utilisé: {self.model}")
                     # Utiliser la requête originale en cas d'erreur
                     return {'search_query': user_query, 'search_type': 'general'}
                 
@@ -318,7 +292,6 @@ IMPORTANT: Ta réponse doit être SEULEMENT le JSON, sans texte avant ou après.
         
         # Construire la requête finale
         final_query = ' '.join(filtered)
-        logger.info(f"🔄 Requête extraite: {final_query}")
         
         return final_query
     
@@ -332,7 +305,6 @@ IMPORTANT: Ta réponse doit être SEULEMENT le JSON, sans texte avant ou après.
         """
         Effectue la recherche avec la requête optimisée
         """
-        logger.info(f"\n🔎 Recherche en cours: \"{search_query}\"")
         
         try:
             # Utiliser SerpAPI en priorité SANS cache pour les nouvelles recherches
@@ -362,7 +334,6 @@ IMPORTANT: Ta réponse doit être SEULEMENT le JSON, sans texte avant ou après.
                 else:
                     results = filtered_results
             
-            logger.info(f"✅ {len(results)} résultats trouvés")
             return results
             
         except Exception as e:
@@ -465,24 +436,23 @@ IMPORTANT: Ta réponse doit être SEULEMENT le JSON, sans texte avant ou après.
         ]
         
         try:
-            if self.use_huggingface:
-                # Utiliser Hugging Face pour la réponse finale
-                logger.info("\n" + "🤗"*20)
-                logger.info("🤗 GÉNÉRATION FINALE AVEC HUGGING FACE (LLM LOCAL)")
-                logger.info("🤗 +5 POINTS BONUS!")
-                logger.info("🤗"*20)
-                return self.llm_service.generate_response(
-                    query=user_query,
-                    search_results=search_results,
-                    current_date=current_date,
-                    time_constraint=time_constraint
-                )
-            else:
-                # Fallback vers OpenRouter
-                logger.info("\n" + "🌐"*20)
-                logger.info("🌐 GÉNÉRATION FINALE AVEC OPENROUTER (API EXTERNE)")
-                logger.info(f"🤖 Modèle: {self.model}")
-                logger.info("🌐"*20)
+            # Utiliser le modèle sélectionné dans le cache
+            selected_model = cache.get('selected_llm_model', 'vllm')
+            logger.info(f"🔍 Génération réponse recherche avec: {selected_model}")
+            
+            if selected_model == 'vllm' and self.vllm_service.is_available():
+                # Utiliser vLLM
+                prompt = f"{system_prompt}\n\nQuestion: {user_query}"
+                response = self.vllm_service.generate_response(prompt=prompt)
+                if response['success']:
+                    return response['response']
+                else:
+                    logger.error(f"Erreur vLLM: {response['error']}")
+                    # Fallback vers OpenRouter
+                    selected_model = 'openrouter'
+            
+            # Si OpenRouter ou si vLLM a échoué
+            if selected_model == 'openrouter':
                 response = httpx.post(
                     f"{self.base_url}/chat/completions",
                     headers=self.headers,
@@ -498,9 +468,12 @@ IMPORTANT: Ta réponse doit être SEULEMENT le JSON, sans texte avant ou après.
                 if response.status_code == 200:
                     result = response.json()
                     return result['choices'][0]['message']['content']
+                elif response.status_code == 429:
+                    logger.error("⚠️ Limite de taux OpenRouter atteinte (429)")
+                    return "⚠️ Limite de requêtes OpenRouter atteinte. Veuillez patienter quelques minutes ou utiliser vLLM local."
                 else:
                     logger.error(f"Erreur génération réponse: {response.status_code}")
-                    return "Erreur lors de la génération de la réponse."
+                    return f"Erreur OpenRouter ({response.status_code}). Essayez vLLM local ou réessayez plus tard."
                 
         except Exception as e:
             logger.error(f"Erreur réponse finale: {e}")

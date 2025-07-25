@@ -1,46 +1,98 @@
-# Getting Started with Create React App
+# Frontend - Chatbot IA
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## 🎨 Description
 
-## Available Scripts
+Interface React moderne pour le chatbot IA avec:
+- Chat en temps réel avec interface intuitive
+- Sélecteur de modèle (vLLM local / OpenRouter cloud)
+- Panneau de sources avec animation slide
+- Design responsive et moderne
 
-In the project directory, you can run:
+## 🚀 Installation
 
-### `npm start`
+```bash
+# Installer les dépendances
+npm install
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+# Lancer en développement
+npm start
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+# Build production
+npm run build
+```
 
-### `npm test`
+## 📁 Structure
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```
+frontend/
+├── src/
+│   ├── components/
+│   │   ├── ChatInterface.tsx    # Composant principal du chat
+│   │   ├── MessageList.tsx      # Liste des messages
+│   │   ├── MessageInput.tsx     # Zone de saisie
+│   │   ├── ModelSelector.tsx    # Sélecteur LLM
+│   │   └── SourcesPanel.tsx     # Panneau des sources
+│   ├── services/
+│   │   └── api.ts              # Service API
+│   └── App.tsx                 # Application principale
+└── package.json
+```
 
-### `npm run build`
+## 🔧 Configuration
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+L'API backend est configurée sur `http://localhost:8000` dans:
+- `src/services/api.ts`
+- `src/components/ChatInterface.tsx`
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## 🎯 Fonctionnalités principales
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### 1. Chat Interface
+- Messages utilisateur/assistant avec avatars
+- Indicateur de chargement animé
+- Auto-scroll vers le bas
+- Support markdown dans les réponses
 
-### `npm run eject`
+### 2. Model Selector
+- Bascule entre vLLM (local) et OpenRouter (cloud)
+- Vérification du statut en temps réel
+- Indicateurs visuels (vert = actif, rouge = inactif)
+- Actualisation automatique toutes les 10s
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+### 3. Sources Panel
+- Ouverture automatique quand sources disponibles
+- Animation slide fluide
+- Cartes cliquables avec snippets
+- Badge numéroté pour chaque source
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## 🛠️ Technologies
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+- **React** 18 avec TypeScript
+- **styled-components** pour le styling
+- **Axios** pour les appels API
+- **markdown-to-jsx** pour le rendu markdown
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+## 📝 Scripts disponibles
 
-## Learn More
+- `npm start` : Serveur de développement (port 3000)
+- `npm build` : Build de production
+- `npm test` : Tests unitaires
+- `npm eject` : Éjecter la config (non recommandé)
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## 💡 Points techniques
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### Performance
+- Rendu optimisé avec React.memo
+- Lazy loading des composants lourds
+- Debounce sur la saisie utilisateur
+
+### UX/UI
+- Feedback visuel immédiat
+- Animations fluides (300ms transitions)
+- Design accessible (ARIA labels)
+- Mode sombre compatible
+
+### Sécurité
+- Sanitization des entrées utilisateur
+- Validation côté client et serveur
+- CORS configuré pour localhost:8000
+

@@ -35,5 +35,10 @@ pydantic==2.5.3
 
 # Hugging Face for LLM
 transformers==4.40.0
-torch==2.2.0
+torch>=2.6.0
 accelerate==0.27.0
+
+# vLLM (Local LLM haute performance)
+# Note: vLLM nécessite un GPU NVIDIA avec CUDA
+# vllm==0.2.7  # Décommenter si GPU disponible
+# flash-attn==2.5.0  # Optionnel pour meilleures performances

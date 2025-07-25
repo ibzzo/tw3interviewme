@@ -166,11 +166,8 @@ CHANNEL_LAYERS = {
 # Cache configuration
 CACHES = {
     'default': {
-        'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': f"redis://{os.environ.get('REDIS_HOST', '127.0.0.1')}:6379/1",
-        'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-        }
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
     }
 }
 
@@ -192,3 +189,34 @@ SEARCH_TIMEOUT = 10
 # Rate limiting
 RATE_LIMIT_REQUESTS = int(os.environ.get('RATE_LIMIT_REQUESTS', 10))
 RATE_LIMIT_WINDOW = int(os.environ.get('RATE_LIMIT_WINDOW', 60))
+
+# vLLM Configuration (Local LLM haute performance)
+VLLM_BASE_URL = os.environ.get('VLLM_BASE_URL', 'http://localhost:8080')
+VLLM_MODEL = os.environ.get('VLLM_MODEL', 'microsoft/Phi-3-mini-4k-instruct')
+
+# Logging configuration pour éviter le spam
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'django.channels.server': {
+            'handlers': ['console'],
+            'level': 'WARNING',  # Ne montrer que warnings et erreurs
+            'propagate': False,
+        },
+        'django.request': {
+            'handlers': ['console'],
+            'level': 'ERROR',  # Ne montrer que les erreurs
+            'propagate': False,
+        },
+    },
+}

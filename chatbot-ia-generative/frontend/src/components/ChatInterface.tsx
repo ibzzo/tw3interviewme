@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import axios from 'axios';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
+import SourcesPanel from './SourcesPanel';
 
 const ChatContainer = styled.div`
   flex: 1;
@@ -37,6 +38,7 @@ const ChatInterface: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
+  const [currentSources, setCurrentSources] = useState<Array<{title: string; url: string; snippet?: string}>>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -83,6 +85,11 @@ const ChatInterface: React.FC = () => {
       
       // Add assistant message
       setMessages(prev => [...prev, assistantMessage]);
+      
+      // Update current sources if any
+      if (sources && sources.length > 0) {
+        setCurrentSources(sources);
+      }
     } catch (error) {
       console.error('Error sending message:', error);
       
@@ -101,13 +108,16 @@ const ChatInterface: React.FC = () => {
   };
 
   return (
-    <ChatContainer>
-      <MessagesColumn>
-        <MessageList messages={messages} loading={loading} />
-        <div ref={messagesEndRef} />
-      </MessagesColumn>
-      <MessageInput onSendMessage={sendMessage} disabled={loading} />
-    </ChatContainer>
+    <>
+      <ChatContainer>
+        <MessagesColumn>
+          <MessageList messages={messages} loading={loading} />
+          <div ref={messagesEndRef} />
+        </MessagesColumn>
+        <MessageInput onSendMessage={sendMessage} disabled={loading} />
+      </ChatContainer>
+      <SourcesPanel sources={currentSources} />
+    </>
   );
 };
 

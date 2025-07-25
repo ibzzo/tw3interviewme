@@ -18,9 +18,12 @@ Un chatbot intelligent qui combine recherche web en temps réel et génération 
 
 **Fonctionnalités principales :**
 - Recherche web intelligente multi-sources
-- Génération de réponses avec OpenRouter (Qwen-2.5-32B)
-- Citations inline des sources [1], [2] comme Claude
+- Double mode LLM : vLLM local (Phi-3) ou OpenRouter cloud (Qwen-2.5-32B)
+- Panneau de sources interactif
+- Sélecteur de modèle en temps réel
 - Interface React moderne et épurée
+
+**⚠️ Important : Les réponses aux questions théoriques (3.1, 3.2, 4) sont incluses dans le README du chatbot.**
 
 [→ Voir les détails d'installation et d'utilisation](./chatbot-ia-generative/README.md)
 
@@ -34,10 +37,17 @@ Démonstration d'un modèle VLM local utilisant Qwen2.5-VL-3B.
 
 [→ Voir les détails et l'analyse théorique](./vlm_project/README.md)
 
+## 📚 Réponses aux Questions Théoriques
+
+Les réponses complètes aux questions du test sont disponibles :
+- **Question 3.1** (Architecture Azure) : Dans [chatbot-ia-generative/README.md](./chatbot-ia-generative/README.md#31-architecture-et-déploiement-azure)
+- **Question 3.2** (Optimisation performances) : Dans [chatbot-ia-generative/README.md](./chatbot-ia-generative/README.md#question-32--amélioration-de-la-vitesse-de-traitement)
+- **Question 4** (Architecture VLM) : Dans [chatbot-ia-generative/README.md](./chatbot-ia-generative/README.md#question-4--architecture-vlm-vision-language-model)
+
 ## 🛠 Installation Rapide
 
 ### Prérequis
-- Python 3.12 (pour vLLM)
+- Python 3.13 (Django) + Python 3.12 (vLLM)
 - Node.js 16+
 - 8GB+ de RAM
 
@@ -69,13 +79,37 @@ SERPAPI_API_KEY=your_key_here
 
 ## 🚀 Lancement
 
-### Chatbot
+### Chatbot (Mode Cloud uniquement)
 ```bash
 cd chatbot-ia-generative
-./start.sh
+# Backend Django
+python manage.py runserver
+
+# Dans un autre terminal - Frontend
+cd frontend
+npm start
 ```
+
+### Chatbot (Avec vLLM local)
+```bash
+cd chatbot-ia-generative
+# Terminal 1 - vLLM
+source venv_vllm/bin/activate
+export VLLM_CPU_KVCACHE_SPACE=8
+vllm serve "microsoft/Phi-3-mini-4k-instruct" --host 0.0.0.0 --port 8080
+
+# Terminal 2 - Backend Django
+source venv/bin/activate
+python manage.py runserver
+
+# Terminal 3 - Frontend
+cd frontend
+npm start
+```
+
 → Frontend : http://localhost:3000
 → Backend : http://localhost:8000
+→ vLLM : http://localhost:8080
 
 ### VLM Demo
 ```bash

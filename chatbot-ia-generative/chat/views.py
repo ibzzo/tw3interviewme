@@ -22,14 +22,16 @@ from .services.serpapi_service import SerpAPIService
 from .services.multi_search import MultiSearchService  # Backup
 from .services.openrouter_optimized import OpenRouterOptimizedService
 from .services.intelligent_search import IntelligentSearchService
+from .services.vllm_service import VLLMService
 from django.utils import timezone
+from django.core.cache import cache
 
 logger = logging.getLogger(__name__)
 
-# Configure console logging for better visibility
+# Configuration simple des logs
 logging.basicConfig(
     level=logging.INFO,
-    format='\n%(asctime)s - %(name)s - %(levelname)s\n%(message)s\n',
+    format='%(asctime)s - %(message)s',
     handlers=[logging.StreamHandler()]
 )
 
@@ -41,15 +43,11 @@ class ChatAPIView(APIView):
     
     def handle_chat(self, message_text: str, conversation_id: str = None):
         """Handle the chat request."""
-        logger.info(f"🔵 NOUVELLE REQUÊTE REÇUE")
-        logger.info(f"📝 Message: {message_text}")
-        logger.info(f"🆔 Conversation ID: {conversation_id or 'Nouvelle conversation'}")
+        # Log simple pour nouvelle requête
+        logger.info(f"💬 Nouvelle requête: {message_text[:50]}...")
         
-        # Obtenir la date actuelle et les informations temporelles
+        # Obtenir la date actuelle
         current_date = datetime.now()
-        current_week = current_date.isocalendar()[1]
-        current_year = current_date.year
-        logger.info(f"📅 Date actuelle: {current_date.strftime('%d/%m/%Y')} - Semaine {current_week} de {current_year}")
         
         # Get or create conversation
         if conversation_id:
@@ -73,12 +71,8 @@ class ChatAPIView(APIView):
         search_query = None
         
         if self._requires_search(message_text):
-            logger.info(f"🔍 RECHERCHE WEB DÉTECTÉE")
-            logger.info(f"🧠 Utilisation du service de recherche intelligent")
-            
-            # Déterminer la période de recherche
+            logger.info(f"🔍 Recherche web activée")
             time_constraint = self._extract_time_constraint(message_text)
-            logger.info(f"⏰ Contrainte temporelle détectée: {time_constraint}")
             
             # Utiliser le service de recherche intelligent
             intelligent_search = IntelligentSearchService()
@@ -94,12 +88,7 @@ class ChatAPIView(APIView):
             search_query = search_result.get('search_query')
             search_results = sources  # Pour la sauvegarde dans le message
             
-            logger.info(f"✅ Recherche intelligente terminée")
-            logger.info(f"🔍 Requête optimisée utilisée: {search_query}")
-            logger.info(f"📚 {len(sources)} sources trouvées")
         else:
-            # Pas de recherche nécessaire, utiliser le service standard
-            logger.info(f"💬 Conversation simple sans recherche web")
             
             # Get conversation history
             messages = []
@@ -109,23 +98,52 @@ class ChatAPIView(APIView):
                     'content': msg.content
                 })
             
-            # Generate AI response avec OpenRouter
-            logger.info(f"🤖 GÉNÉRATION DE LA RÉPONSE LLM")
-            logger.info(f"📊 Contexte: {len(messages)} messages")
-            try:
+            # Récupérer le modèle sélectionné
+            selected_model = cache.get('selected_llm_model', 'vllm')
+            logger.info(f"📌 Modèle sélectionné depuis le cache: {selected_model}")
+            
+            if selected_model == 'vllm':
+                # Utiliser vLLM
+                vllm_service = VLLMService()
+                if not vllm_service.is_available():
+                    logger.error(f"❌ vLLM n'est pas disponible sur {vllm_service.base_url}")
+                    ai_response = "Erreur : Le service vLLM n'est pas disponible. Veuillez démarrer vLLM ou basculer sur OpenRouter."
+                else:
+                    try:
+                        logger.info("🤖 MODE: vLLM Local (Phi-3)")
+                        
+                        # Construire le contexte de conversation
+                        conversation_context = "\n".join([
+                            f"{msg['role'].capitalize()}: {msg['content']}"
+                            for msg in messages[:-1]
+                        ])
+                        
+                        prompt = message_text
+                        if conversation_context:
+                            prompt = f"Conversation précédente:\n{conversation_context}\n\nQuestion: {message_text}"
+                        
+                        response = vllm_service.generate_response(prompt=prompt)
+                        if response['success']:
+                            ai_response = response['response']
+                        else:
+                            raise Exception(response['error'])
+                    except Exception as e:
+                        logger.error(f"❌ Erreur vLLM: {str(e)}")
+                        ai_response = f"Erreur lors de la génération de la réponse : {str(e)}"
+            else:
                 # Utiliser OpenRouter
-                logger.info("\n🌐 Utilisation d'OpenRouter")
-                openrouter_service = OpenRouterOptimizedService()
-                ai_response = openrouter_service.generate_response(
-                    query=message_text,
-                    search_results=None,
-                    current_date=current_date,
-                    conversation_history=messages[:-1]
-                )
-                logger.info(f"✅ Réponse générée avec OpenRouter")
-            except Exception as e:
-                logger.error(f"Error generating AI response: {str(e)}")
-                ai_response = "Je suis désolé, j'ai rencontré une erreur lors du traitement de votre demande. Veuillez réessayer."
+                try:
+                    logger.info("☁️ MODE: OpenRouter Cloud (Qwen)")
+                    openrouter_service = OpenRouterOptimizedService()
+                    ai_response = openrouter_service.generate_response(
+                        query=message_text,
+                        search_results=None,
+                        current_date=current_date,
+                        conversation_history=messages[:-1]
+                    )
+                except Exception as e:
+                    logger.error(f"❌ Erreur OpenRouter: {str(e)}")
+                    ai_response = f"Erreur avec OpenRouter. Vérifiez votre clé API: {str(e)}"
         
         # Save assistant message
         assistant_message = Message.objects.create(
@@ -184,12 +202,7 @@ class ChatAPIView(APIView):
         ]
         
         message_lower = message.lower()
-        found_keywords = [kw for kw in search_keywords if kw in message_lower]
-        
-        if found_keywords:
-            logger.info(f"🔑 Mots-clés de recherche détectés: {', '.join(found_keywords)}")
-        
-        return len(found_keywords) > 0
+        return any(kw in message_lower for kw in search_keywords)
     
     def _extract_search_query(self, message: str) -> str:
         """Extract search query from the message."""
